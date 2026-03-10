@@ -1,3 +1,4 @@
+import { mockTransactions } from "@/lib/data";
 import { create } from "zustand";
 
 type Transaction = {
@@ -23,49 +24,7 @@ type TransactionActions = {
 };
 
 export const useTransactionStore = create<TransactionActions>()((set, get) => ({
-  transactions: [
-    {
-      id: "ABC123",
-      name: "Iphone 12",
-      category: "buy",
-      date: new Date(),
-      amount: 12,
-      kind: "income",
-    },
-    {
-      id: "DEF456",
-      name: "Spotify",
-      category: "subscription",
-      date: new Date(),
-      amount: 12,
-      kind: "expense",
-    },
-    {
-      id: "GHI789",
-      name: "Salary",
-      category: "income",
-      date: new Date(),
-      amount: 1000,
-      kind: "income",
-    },
-    {
-      id: "JKL012",
-      name: "Dinner at The Green Bistro",
-      category: "dining",
-      date: new Date(),
-      amount: 45.5,
-      kind: "expense",
-    },
-    {
-      id: "MNO345",
-      name: "Salary Deposit",
-      category: "income",
-      date: new Date(),
-      amount: 4200,
-      kind: "income",
-    },
-  ],
-
+  transactions: mockTransactions,
   addTransaction: (transaction) =>
     set((state) => ({
       transactions: [transaction, ...state.transactions],
