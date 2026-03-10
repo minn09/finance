@@ -1,17 +1,15 @@
 'use client'
 import HeaderDashboard from "@/components/HeaderDashboard";
 import {
-  IconTrendingUp, IconStopwatch, IconDeviceLaptop,
-  IconToolsKitchen2, IconArrowDownLeft, IconCar,
-  IconCreditCard, IconBuildingBank, IconCash, IconClipboardList,
+  IconTrendingUp, IconStopwatch, IconDeviceLaptop, IconBuildingBank, IconCash, IconClipboardList,
   ReactNode
 } from "@tabler/icons-react";
 
-import { useBalanceStore } from '@/store/balance'
+import { useBalanceStore } from '@/store/balance';
 import { useSavingsStore } from "@/store/savings";
-import { useCardStore } from "@/store/cards";
 import { useTransactionStore } from "@/store/transactions";
-import { capitalize, formatCurrency, formatDate } from "@/lib/constants";
+import { capitalize, formatCurrency, formatDate } from "@/lib/formatters";
+import { MAX_RECENT_TRANSACTIONS } from "@/lib/constants";
 
 export default function Page() {
   const { total, bank, cash, pending_income } = useBalanceStore()
@@ -58,13 +56,16 @@ export default function Page() {
               <button className="text-emerald-500 font-bold text-sm">View All</button>
             </div>
             <div className="space-y-6">
-              {transactions.map((transaction) => (
-                <TransactionItem icon={<IconDeviceLaptop />} title={transaction.name} subtitle={`${capitalize(transaction.category)} • ${formatDate(transaction.date)}`} amount={formatCurrency(transaction.amount)} kind={transaction.kind} key={transaction.id} />
+              {transactions.slice(0, MAX_RECENT_TRANSACTIONS).map((transaction) => (
+                <TransactionItem
+                  key={transaction.id}
+                  icon={<IconDeviceLaptop />}
+                  title={transaction.name}
+                  subtitle={`${capitalize(transaction.category)} • ${formatDate(transaction.date)}`}
+                  amount={formatCurrency(transaction.amount)}
+                  kind={transaction.kind}
+                />
               ))}
-              {/* <TransactionItem icon={<IconDeviceLaptop />} title="Apple Store" subtitle="Subscription • Today" amount="-$9.99" />
-              <TransactionItem icon={<IconToolsKitchen2 />} title="The Green Bistro" subtitle="Dining • Yesterday" amount="-$45.50" />
-              <TransactionItem icon={<IconArrowDownLeft className="text-emerald-500" />} title="Salary Deposit" subtitle="Income • 2 days ago" amount="+$4,200.00" isIncome />
-              <TransactionItem icon={<IconCar />} title="Uber Trip" subtitle="Transport • 3 days ago" amount="-$12.40" /> */}
             </div>
           </div>
 
