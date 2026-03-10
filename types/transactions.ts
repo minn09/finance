@@ -8,7 +8,7 @@ export type Transaction = {
     | "transport"
     | "buy"
     | "other";
-  date: Date;
+  date: Date | string;
   amount: number;
   kind: "income" | "expense";
 };

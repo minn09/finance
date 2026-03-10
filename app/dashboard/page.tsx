@@ -16,7 +16,7 @@ import { useEffect, useState } from "react";
 export default function Page() {
   const { total, bank, cash, pending_income } = useBalanceStore()
   const { goal, saved, progress, currentSave } = useSavingsStore()
-  const { transactions, getRecent } = useTransactionStore()
+  const transactions = useTransactionStore((store) => store.transactions);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -74,8 +74,7 @@ export default function Page() {
               <button className="text-emerald-500 font-bold text-sm">View All</button>
             </div>
             <div className="space-y-6">
-              {/* TODO: Usar la funcion getRecent del store de transacciones */}
-              {getRecent().map((transaction) => (
+              {transactions.slice(0, 4).map((transaction) => (
                 <TransactionItem
                   key={transaction.id}
                   icon={<IconDeviceLaptop />}

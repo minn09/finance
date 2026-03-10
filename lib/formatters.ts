@@ -8,9 +8,14 @@ export function formatCurrency(
   }).format(amount);
 }
 
-export function formatDate(date: Date): string {
+export function formatDate(date: Date | string): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  if (isNaN(d.getTime())) {
+    return String(date);
+  }
+
   const now = new Date();
-  const diff = now.getTime() - date.getTime();
+  const diff = now.getTime() - d.getTime();
   const diffDays = Math.floor(diff / (1000 * 60 * 60 * 24));
   if (diffDays === 0) {
     return "Today";

@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { categoryItems, kindItems } from "@/lib/constants"
 import { useState } from "react"
 import { Transaction } from "@/types/transactions"
+import { useTransactionStore } from "@/store/transactions"
 
 type Props = {
   open?: boolean;
@@ -30,7 +31,6 @@ type FormData = {
   date: string;
 }
 export function DialogTransaction({ open, onOpenChange }: Props) {
-
   const [formData, setFormData] = useState<FormData>({
     name: "Iphone 11",
     amount: 10,
@@ -39,10 +39,30 @@ export function DialogTransaction({ open, onOpenChange }: Props) {
     date: new Date().toISOString().split('T')[0],
   });
 
+  const addTransaction = useTransactionStore((state) => state.addTransaction);
+
   const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    const newTransaction: Transaction = {
+      ...formData,
+      id: crypto.randomUUID(),
+    };
+
+    addTransaction(newTransaction);
+    console.log("Transacción guardada:", newTransaction);
+
     console.log("Submit exitoso:", formData);
     if (onOpenChange) onOpenChange(false);
+
+    // OPCIONAL
+    setFormData({
+      name: "",
+      amount: 0,
+      category: "dining",
+      kind: "expense",
+      date: new Date().toISOString().split('T')[0],
+    });
   };
 
   return (
