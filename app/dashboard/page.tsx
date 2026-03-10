@@ -9,18 +9,36 @@ import { useBalanceStore } from '@/store/balance';
 import { useSavingsStore } from "@/store/savings";
 import { useTransactionStore } from "@/store/transactions";
 import { capitalize, formatCurrency, formatDate } from "@/lib/formatters";
-import { MAX_RECENT_TRANSACTIONS } from "@/lib/constants";
+
+import { DialogTransaction } from "@/components/DialogTransaction";
+import { useEffect, useState } from "react";
 
 export default function Page() {
   const { total, bank, cash, pending_income } = useBalanceStore()
   const { goal, saved, progress, currentSave } = useSavingsStore()
-  const { transactions } = useTransactionStore()
+  const { transactions, getRecent } = useTransactionStore()
 
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.key.toLowerCase() === 'c' &&
+        !(e.target instanceof HTMLInputElement) &&
+        !(e.target instanceof HTMLTextAreaElement)
+      ) {
+        e.preventDefault();
+        setIsDialogOpen(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#f5f8f5] text-slate-900 font-sans">
       <HeaderDashboard />
-
       <main className="p-6 lg:p-12 max-w-350 mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-12 gap-6">
 
@@ -56,7 +74,8 @@ export default function Page() {
               <button className="text-emerald-500 font-bold text-sm">View All</button>
             </div>
             <div className="space-y-6">
-              {transactions.slice(0, MAX_RECENT_TRANSACTIONS).map((transaction) => (
+              {/* TODO: Usar la funcion getRecent del store de transacciones */}
+              {getRecent().map((transaction) => (
                 <TransactionItem
                   key={transaction.id}
                   icon={<IconDeviceLaptop />}
@@ -175,8 +194,11 @@ export default function Page() {
           </div>
 
         </div>
-      </main>
-    </div>
+      </main >
+      <div className="fixed bottom-8 right-8 z-50">
+        <DialogTransaction open={isDialogOpen} onOpenChange={setIsDialogOpen} />
+      </div>
+    </div >
   );
 }
 

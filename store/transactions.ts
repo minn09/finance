@@ -1,20 +1,7 @@
 import { mockTransactions } from "@/lib/data";
 import { create } from "zustand";
-
-type Transaction = {
-  id: string;
-  name: string;
-  category:
-    | "subscription"
-    | "dining"
-    | "income"
-    | "transport"
-    | "buy"
-    | "other";
-  date: Date;
-  amount: number;
-  kind: "income" | "expense";
-};
+import { Transaction } from "@/types/transactions";
+import { MAX_RECENT_TRANSACTIONS } from "@/lib/constants";
 
 type TransactionActions = {
   transactions: Transaction[];
@@ -35,5 +22,6 @@ export const useTransactionStore = create<TransactionActions>()((set, get) => ({
       transactions: state.transactions.filter((t) => t.id !== id),
     })),
 
-  getRecent: (limit = 4) => get().transactions.slice(0, limit),
+  getRecent: (limit = MAX_RECENT_TRANSACTIONS) =>
+    get().transactions.slice(0, limit),
 }));
