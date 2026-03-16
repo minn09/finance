@@ -11,30 +11,13 @@ import { useTransactionStore } from "@/store/transactions";
 import { capitalize, formatCurrency, formatDate } from "@/lib/formatters";
 
 import { DialogTransaction } from "@/components/DialogTransaction";
-import { useEffect, useState } from "react";
+import DialogBalance from "@/components/DialogBalance";
+import { ActionButtonGroup } from "@/components/ActionButtonGroup";
 
 export default function Page() {
-  const { total, bank, cash, pending_income } = useBalanceStore()
+  const { total, bank, cash, pendingIncome } = useBalanceStore()
   const { goal, saved, progress, currentSave } = useSavingsStore()
   const transactions = useTransactionStore((store) => store.transactions);
-
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        e.key.toLowerCase() === 'c' &&
-        !(e.target instanceof HTMLInputElement) &&
-        !(e.target instanceof HTMLTextAreaElement)
-      ) {
-        e.preventDefault();
-        setIsDialogOpen(true);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
 
   return (
     <div className="min-h-screen bg-[#f5f8f5] text-slate-900 font-sans">
@@ -64,7 +47,7 @@ export default function Page() {
           <div className="md:col-span-4 lg:col-span-3 flex flex-col gap-4 justify-around">
             <MiniStatCard icon={<IconBuildingBank className="text-blue-600" />} label="Bank" value={bank} bg="bg-blue-50" />
             <MiniStatCard icon={<IconCash className="text-orange-600" />} label="Cash" value={cash} bg="bg-orange-50" />
-            <MiniStatCard icon={<IconClipboardList className="text-purple-600" />} label="Pending Income" value={pending_income} bg="bg-purple-50" />
+            <MiniStatCard icon={<IconClipboardList className="text-purple-600" />} label="Pending Income" value={pendingIncome} bg="bg-purple-50" />
           </div>
 
           {/* 3. RECENT TRANSACTIONS (Abajo Izquierda) */}
@@ -195,7 +178,9 @@ export default function Page() {
         </div>
       </main >
       <div className="fixed bottom-8 right-8 z-50">
-        <DialogTransaction open={isDialogOpen} onOpenChange={setIsDialogOpen} />
+        <ActionButtonGroup />
+        <DialogTransaction />
+        <DialogBalance />
       </div>
     </div >
   );

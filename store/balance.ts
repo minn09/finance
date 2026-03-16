@@ -3,7 +3,7 @@ import { create } from "zustand";
 type BalanceState = {
   bank: number;
   cash: number;
-  pending_income: number;
+  pendingIncome: number;
   goal: number;
 };
 
@@ -19,13 +19,13 @@ export const useBalanceStore = create<BalanceState & BalanceActions>()(
   (set, get) => ({
     bank: 0,
     cash: 0,
-    pending_income: 0,
+    pendingIncome: 0,
     goal: 0,
 
     total: () => get().bank + get().cash,
     setBank: (amount) => set({ bank: amount }),
     setCash: (amount) => set({ cash: amount }),
-    setPendingIncome: (amount) => set({ pending_income: amount }),
+    setPendingIncome: (amount) => set({ pendingIncome: amount }),
     setGoal: (amount) => set({ goal: amount }),
   }),
 );

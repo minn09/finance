@@ -1,3 +1,5 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -7,22 +9,17 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import { Field, FieldGroup } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { IconPlus } from "@tabler/icons-react"
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { categoryItems, kindItems } from "@/lib/constants"
 import { useState } from "react"
 import { Transaction } from "@/types/transactions"
 import { useTransactionStore } from "@/store/transactions"
+import { useUIStore } from "@/store/ui"
 
-type Props = {
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
-}
 type FormData = {
   name: string;
   amount: number;
@@ -30,82 +27,88 @@ type FormData = {
   kind: Transaction['kind'];
   date: string;
 }
-export function DialogTransaction({ open, onOpenChange }: Props) {
-  const [formData, setFormData] = useState<FormData>({
-    name: "Iphone 11",
-    amount: 10,
-    category: "dining",
-    kind: "expense",
-    date: new Date().toISOString().split('T')[0],
-  });
 
-  const addTransaction = useTransactionStore((state) => state.addTransaction);
+const defaultForm: FormData = {
+  name: "Iphone 15 Pro",
+  amount: 1200,
+  category: "buy",
+  kind: "expense",
+  date: new Date().toISOString().split('T')[0],
+}
 
-  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault();
+export function DialogTransaction() {
+  const [formData, setFormData] = useState<FormData>(defaultForm)
+  const activeDialog = useUIStore((state) => state.activeDialog)
+  const closeDialog = useUIStore((state) => state.closeDialog)
+  const addTransaction = useTransactionStore((state) => state.addTransaction)
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
 
     const newTransaction: Transaction = {
       ...formData,
       id: crypto.randomUUID(),
-    };
+    }
 
-    addTransaction(newTransaction);
-    console.log("Transacción guardada:", newTransaction);
-
-    console.log("Submit exitoso:", formData);
-    if (onOpenChange) onOpenChange(false);
-
-    // OPCIONAL
-    setFormData({
-      name: "",
-      amount: 0,
-      category: "dining",
-      kind: "expense",
-      date: new Date().toISOString().split('T')[0],
-    });
-  };
+    addTransaction(newTransaction)
+    closeDialog()
+    setFormData(defaultForm)
+  }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <form className="w-full" id="transaction-form" onSubmit={(e) => { handleSubmit(e) }}>
-        <DialogTrigger render={
-          <Button
-            className="flex items-center justify-center gap-2 h-14 px-6 rounded-2xl shadow-lg
-        bg-white hover:bg-slate-50 border-slate-200 transition-all hover:scale-105 active:scale-95"
-            variant="outline"
-          >
-            <IconPlus size={20} />
-            <span>New</span>
-          </Button>
-        } />
-        <DialogContent className="sm:max-w-sm">
+
+    <Dialog
+      open={activeDialog === "transaction"}
+      onOpenChange={(v) => !v && closeDialog()}
+    >
+      <DialogContent className="sm:max-w-sm">
+        <form id="transaction-form" onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>Add a new transaction</DialogTitle>
             <DialogDescription>
-              Make changes to your transaction here. Click save when you&apos;re
-              done.
+              Make changes to your transaction here. Click save when you&apos;re done.
             </DialogDescription>
           </DialogHeader>
-          <FieldGroup>
 
+          <FieldGroup className="py-4">
             <Field>
               <Label htmlFor="name-1">Name</Label>
-              <Input id="name-1" name="name" defaultValue="Iphone 11" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+              <Input
+                id="name-1"
+                name="name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                required
+              />
             </Field>
 
             <Field>
               <Label htmlFor="amount-1">Amount</Label>
-              <Input id="amount-1" name="amount" type="number" defaultValue={10} value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: Number(e.target.value) })} />
+              <Input
+                id="amount-1"
+                name="amount"
+                type="number"
+                value={formData.amount}
+                onChange={(e) => setFormData({ ...formData, amount: Number(e.target.value) })}
+                required
+              />
             </Field>
 
             <Field>
               <Label htmlFor="category-1">Category</Label>
-              <Select items={categoryItems} defaultValue={'Choose a category'} name="category" value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: (value ?? 'other') as Transaction['category'] })}>
-                <SelectTrigger id="small-form-role">
-                  <SelectValue />
+              <Select
+                items={categoryItems}
+                value={formData.category}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, category: (value ?? "other") as Transaction['category'] })
+                }
+              >
+                <SelectTrigger id="category-1">
+                  <SelectValue placeholder="Choose a category" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
+                    <SelectLabel>Categories</SelectLabel>
                     {categoryItems.map((item) => (
                       <SelectItem key={item.value} value={item.value}>
                         {item.label}
@@ -118,34 +121,56 @@ export function DialogTransaction({ open, onOpenChange }: Props) {
 
             <Field>
               <Label htmlFor="kind-1">Kind</Label>
-              <Select items={kindItems} defaultValue={'Choose a kind'} name="kind" value={formData.kind} onValueChange={(value) => setFormData({ ...formData, kind: (value ?? '') as Transaction['kind'] })}>
-                <SelectTrigger id="small-form-role">
-                  <SelectValue placeholder="Choose a kind" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {kindItems.map((item) => (
-                      <SelectItem key={item.value} value={item.value}>
-                        {item.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
+              <div className="flex flex-col space-y-2" role="group" aria-labelledby="kind-1">
+                {kindItems.map((item) => (
+                  <Label
+                    key={item.value}
+                    htmlFor={`kind-${item.value}`}
+                    className="flex items-center space-x-2 cursor-pointer"
+                  >
+                    <input
+                      id={`kind-${item.value}`}
+                      type="checkbox"
+                      className="sr-only"
+                      checked={formData.kind === item.value}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          kind: e.target.checked ? (item.value as Transaction['kind']) : ("expense" as Transaction['kind']),
+                        })
+                      }
+                    />
+                    <span
+                      className={`inline-flex h-4 w-4 items-center justify-center rounded border ${formData.kind === item.value ? "bg-primary text-primary-foreground border-transparent" : "bg-transparent"
+                        }`}
+                      aria-hidden
+                    >
+                      {formData.kind === item.value ? "✓" : ""}
+                    </span>
+                    <span>{item.label}</span>
+                  </Label>
+                ))}
+              </div>
             </Field>
 
             <Field>
               <Label htmlFor="date-1">Date</Label>
-              <Input id="date-1" name="date" type="date" defaultValue={new Date().toISOString().split('T')[0]} value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} />
+              <Input
+                id="date-1"
+                name="date"
+                type="date"
+                value={formData.date}
+                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+              />
             </Field>
-
           </FieldGroup>
+
           <DialogFooter>
-            <DialogClose render={<Button variant="outline">Cancel</Button>} />
-            <Button type="submit" form="transaction-form">Save changes</Button>
+            <DialogClose render={<Button variant="outline" type="button">Cancel</Button>} />
+            <Button type="submit">Save changes</Button>
           </DialogFooter>
-        </DialogContent>
-      </form>
+        </form>
+      </DialogContent>
     </Dialog>
   )
 }
