@@ -1,8 +1,7 @@
 'use client'
 import HeaderDashboard from "@/components/HeaderDashboard";
 import {
-  IconTrendingUp, IconStopwatch, IconDeviceLaptop, IconBuildingBank, IconCash, IconClipboardList,
-  ReactNode
+  IconTrendingUp, IconStopwatch, IconDeviceLaptop, IconBuildingBank, IconCash, IconClipboardList
 } from "@tabler/icons-react";
 
 import { useBalanceStore } from '@/store/balance';
@@ -13,6 +12,9 @@ import { capitalize, formatCurrency, formatDate } from "@/lib/formatters";
 import { DialogTransaction } from "@/components/DialogTransaction";
 import DialogBalance from "@/components/DialogBalance";
 import { ActionButtonGroup } from "@/components/ActionButtonGroup";
+import { MonthlyExpensesChart } from "@/components/MonthlyExpensesChart";
+import { TransactionItem } from "@/components/TransactionItem";
+import { MiniStatCard } from "@/components/MiniStatCard";
 
 export default function Page() {
   const { total, bank, cash, pendingIncome } = useBalanceStore()
@@ -89,128 +91,17 @@ export default function Page() {
           {/* 5. RESUMEN DE GASTOS POR CATEGORÍA (Gráfico de Tarta) */}
           <div className="md:col-span-2 lg:col-span-3 bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 flex flex-col">
             <h3 className="font-bold text-lg mb-4">Summary of Expenses (month)</h3>
-
-            {/* IIFE para calcular datos del mes actual y renderizar un gráfico de tarta CSS */}
-            {(() => {
-              // Filtrar solo gastos del mes actual
-              const now = new Date();
-              const monthExpenses = transactions.filter((t) => {
-                if (t.kind !== "expense") return false;
-                const d = new Date(t.date);
-                return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-              });
-
-              // Sumar por categoría
-              const totals: Record<string, number> = {};
-              monthExpenses.forEach((t) => {
-                const cat = capitalize(t.category || "Other");
-                const amount = Math.abs(Number(t.amount) || 0);
-                totals[cat] = (totals[cat] || 0) + amount;
-              });
-
-              const entries = Object.entries(totals).sort((a, b) => b[1] - a[1]);
-              const total = entries.reduce((s, [, v]) => s + v, 0);
-
-              if (!entries.length) {
-                return (
-                  <div className="flex-1 flex flex-col items-center justify-center text-slate-400 text-sm">
-                    <p>No hay gastos en el mes actual</p>
-                  </div>
-                );
-              }
-
-              // Colores para segmentos
-              const colors = ["#ef4444", "#f97316", "#f59e0b", "#10b981", "#06b6d4", "#3b82f6", "#8b5cf6"];
-
-              // Crear segmentos con porcentaje redondeado
-              const segments = entries.map(([label, value], i) => ({
-                label,
-                value,
-                percent: (value / total) * 100,
-                color: colors[i % colors.length],
-              }));
-
-              // Normalizar para que sumen 100 (evitar pequeños residuos por redondeo visual)
-              const roundedPercentTotal = segments.reduce((s, seg) => s + Math.round(seg.percent), 0);
-              const adjust = roundedPercentTotal - 100;
-              if (adjust !== 0) {
-                // Ajusta el mayor segmento para corregir
-                const maxIdx = segments.reduce((mi, seg, idx, arr) => (seg.percent > arr[mi].percent ? idx : mi), 0);
-                segments[maxIdx].percent = Math.round(segments[maxIdx].percent) - adjust;
-              }
-              // Generar gradiente tipo conic-gradient
-              const gradientParts = segments.map((seg, i) => {
-                const rounded = Math.round(seg.percent);
-                const end = segments.slice(0, i + 1).reduce((s, sh) => s + Math.round(sh.percent), 0);
-                const start = end - rounded;
-                return `${seg.color} ${start}% ${end}%`;
-              });
-              const gradient = gradientParts.join(", ");
-
-              return (
-                <div className="flex-1 flex flex-col items-center">
-                  <div
-                    className="w-36 h-36 rounded-full shadow-inner"
-                    style={{
-                      background: `conic-gradient(${gradient})`,
-                    }}
-                    aria-hidden
-                  />
-                  <div className="mt-4 w-full space-y-2">
-                    {segments.map((seg) => (
-                      <div key={seg.label} className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-3">
-                          <span className="w-3 h-3 rounded-full" style={{ background: seg.color }} />
-                          <span className="truncate">{seg.label}</span>
-                        </div>
-                        <span className="font-bold">{Math.round(seg.percent)}%</span>
-                      </div>
-                    ))}
-                    <div className="pt-3 border-t border-slate-100 mt-3 text-xs text-slate-400">
-                      Total: {formatCurrency(total)}
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
+            <MonthlyExpensesChart transactions={transactions} />
           </div>
 
         </div>
       </main >
+
       <div className="fixed bottom-8 right-8 z-50">
         <ActionButtonGroup />
         <DialogTransaction />
         <DialogBalance />
       </div>
     </div >
-  );
-}
-
-// --- Componentes Auxiliares para limpieza ---
-
-function MiniStatCard({ icon, label, value, bg }: { icon: ReactNode, label: string, value: number, bg: string }) {
-  return (
-    <div className="bg-white rounded-3xl p-5 flex items-center gap-4 shadow-sm border border-slate-50">
-      <div className={`p-3 rounded-2xl ${bg}`}>{icon}</div>
-      <div>
-        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">{label}</p>
-        <p className="text-lg font-bold">{value}</p>
-      </div>
-    </div>
-  );
-}
-
-function TransactionItem({ icon, title, subtitle, amount, kind }: { icon: ReactNode, title: string, subtitle: string, amount: string, kind: "income" | "expense" }) {
-  return (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-4">
-        <div className="size-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-500">{icon}</div>
-        <div>
-          <p className="font-bold text-sm">{title}</p>
-          <p className="text-xs text-slate-400">{subtitle}</p>
-        </div>
-      </div>
-      <p className={`font-bold text-sm ${kind === "income" ? 'text-emerald-500' : 'text-slate-900'}`}>{kind === "income" ? "+" : "-"}{amount}</p>
-    </div>
   );
 }
